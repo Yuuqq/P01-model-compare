@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>" />
+  <title>P01 多模型口径对比器</title>
+    <link rel="stylesheet" href="../shared/design-tokens.css" />
+<link rel="stylesheet" href="./styles.css" />
+  <meta name="description" content="神农尝百草多模型口径对比器。P01 多模型口径对比器" />
+  <meta property="og:title" content="P01 神农尝百草多模型口径对比器" />
+  <meta property="og:description" content="神农尝百草多模型口径对比器 — 前端纯静态新闻工具" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://yuuqq.github.io/P01-model-compare/" />
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <h1>神农尝百草多模型口径对比器</h1>
+      <p>同一问题并发询问 3 个模型，直接比立场、偏见与幻觉。</p>
+      <p class="note">BYOK 直连模式: API Key 只在当前页面内存中使用，不写入服务器。</p>
+    </header>
+
+    <section class="question">
+      <label for="questionInput">采访问题</label>
+      <textarea id="questionInput" rows="4" placeholder="例如: 请分别用支持与反对视角评价某项公共政策。"></textarea>
+      <button id="runBtn" type="button">并发对比 3 模型</button>
+    </section>
+
+    <section class="grid" aria-label="模型对比面板">
+      <article class="panel" data-panel="a">
+        <h2>模型 A</h2>
+        <div class="form-row">
+          <label>Endpoint</label>
+          <input class="endpoint" type="url" placeholder="https://api.deepseek.com/chat/completions" />
+        </div>
+        <div class="form-row">
+          <label>Model</label>
+          <input class="model" type="text" placeholder="deepseek-chat" />
+        </div>
+        <div class="form-row">
+          <label>API Key</label>
+          <input class="apiKey" type="password" placeholder="sk-..." />
+        </div>
+        <div class="out" aria-live="polite">等待输入...</div>
+      </article>
+
+      <article class="panel" data-panel="b">
+        <h2>模型 B</h2>
+        <div class="form-row">
+          <label>Endpoint</label>
+          <input class="endpoint" type="url" placeholder="https://api.moonshot.cn/v1/chat/completions" />
+        </div>
+        <div class="form-row">
+          <label>Model</label>
+          <input class="model" type="text" placeholder="moonshot-v1-8k" />
+        </div>
+        <div class="form-row">
+          <label>API Key</label>
+          <input class="apiKey" type="password" placeholder="sk-..." />
+        </div>
+        <div class="out" aria-live="polite">等待输入...</div>
+      </article>
+
+      <article class="panel" data-panel="c">
+        <h2>模型 C</h2>
+        <div class="form-row">
+          <label>Endpoint</label>
+          <input class="endpoint" type="url" placeholder="https://api.openai.com/v1/chat/completions" />
+        </div>
+        <div class="form-row">
+          <label>Model</label>
+          <input class="model" type="text" placeholder="gpt-4o-mini" />
+        </div>
+        <div class="form-row">
+          <label>API Key</label>
+          <input class="apiKey" type="password" placeholder="sk-..." />
+        </div>
+        <div class="out" aria-live="polite">等待输入...</div>
+      </article>
+    </section>
+  </main>
+    <script src="./pm-metrics.js" defer></script>
+<script src="./app.js" defer></script>
+
+  <!-- Privacy Notice -->
+  <div style="text-align:center;padding:12px 16px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:24px;">
+    🔒 隐私提示：本工具所有数据处理均在您的浏览器本地完成，不会上传任何数据至服务器。
+  </div>
+
+  <!-- Cross-Project Navigation -->
+  <nav style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
+    <a href="https://yuuqq.github.io/_codex/" style="text-decoration:none;">📋 工具箱导航</a>
+    <span style="opacity:.4">P01</span>
+  </nav>
+</body>
+</html>

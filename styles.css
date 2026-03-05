@@ -1,0 +1,159 @@
+:root {
+  --bg: #f3eee4;
+  --ink: #111111;
+  --paper: #fffdfa;
+  --line: #d8ccb9;
+  --accent: #b63a13;
+  --ok: #0b7a3b;
+  --bad: #a61f12;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 20% 10%, #ffeec8 0, transparent 40%),
+    radial-gradient(circle at 80% 90%, #ffd9cc 0, transparent 30%),
+    var(--bg);
+  font-family: "IBM Plex Sans", "Noto Sans SC", "PingFang SC", sans-serif;
+}
+
+.wrap {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.hero {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.hero h1 {
+  margin: 0 0 8px;
+  font-family: "IBM Plex Serif", "Source Han Serif SC", serif;
+  letter-spacing: 0.4px;
+}
+
+.hero p {
+  margin: 4px 0;
+}
+
+.note {
+  color: #5b4633;
+}
+
+.question {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.question label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.question textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 110px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+}
+
+#runBtn {
+  margin-top: 10px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #c7491f, #8e2608);
+}
+
+#runBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.grid {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.form-row {
+  margin-bottom: 8px;
+}
+
+.form-row label {
+  display: block;
+  font-size: 0.86rem;
+  margin-bottom: 4px;
+  color: #533d2f;
+}
+
+.form-row input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 8px;
+  font: inherit;
+}
+
+.out {
+  margin-top: 10px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  min-height: 220px;
+  background: #fff;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.out.status-ok {
+  border-color: var(--ok);
+}
+
+.out.status-error {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  input, textarea, select { font-size: 16px; }
+  button { font-size: 16px; }
+}
