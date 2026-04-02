@@ -64,16 +64,23 @@ async function askModel({ endpoint, model, apiKey, question }) {
 
 runBtn?.addEventListener("click", async () => {
   const question = questionInput.value.trim();
+  const statusEl = document.getElementById("status");
+  
   if (!question) {
-    alert("请先输入采访问题。");
+    statusEl.textContent = "错误：请先输入采访问题。";
+    statusEl.style.color = "var(--error)";
     return;
   }
+
+  statusEl.textContent = "状态: 正在并发请求模型...";
+  statusEl.style.color = "var(--text)";
 
   const values = panels.map(panelValues);
   for (let i = 0; i < values.length; i += 1) {
     const v = values[i];
     if (!v.endpoint || !v.model || !v.apiKey) {
-      alert(`模型 ${i + 1} 的 Endpoint/Model/API Key 不能为空。`);
+      statusEl.textContent = `错误：模型 ${i + 1} 的 Endpoint/Model/API Key 不能为空。`;
+      statusEl.style.color = "var(--error)";
       return;
     }
   }
