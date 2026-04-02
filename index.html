@@ -12,6 +12,15 @@
   <meta property="og:description" content="神农尝百草多模型口径对比器 — 前端纯静态新闻工具" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://yuuqq.github.io/P01-model-compare/" />
+  <link rel="manifest" href="./manifest.json" />
+<style media="print">
+.gnav,.pedagogy-panel,.explore-section,[class*="dark-toggle"],button[aria-label]{display:none!important}
+body{background:#fff!important;color:#000!important;font-size:11pt}
+.app,main,.container{box-shadow:none!important;border:none!important;padding:0!important}
+a{color:#000!important;text-decoration:underline}
+a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
+@page{margin:2cm}
+</style>
 </head>
 <body>
   <main class="wrap">
@@ -22,8 +31,18 @@
     </header>
 
     <section class="question">
+      <details class="teach-card" open>
+        <summary>🎓 如何使用多模型对比</summary>
+        <p>将同一问题同时发送给不同 AI 模型，观察它们在<strong>立场倾向</strong>、<strong>事实幻觉</strong>、<strong>信源引用</strong>三个维度的差异。这是新闻学中“交叉核验”思维的 AI 时代延伸。</p>
+      </details>
+      <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='请分别用支持与反对视角评价城市坟地复拍政策。'">示例: 城市拆迁政策</button>
+        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='某能源巨头发布纯利润数据显示增长，但网上又有漏油事故报告。请综合分析这家公司的综合表现。'">示例: 企业 ESG 争议</button>
+        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='某市宣称空气质量达到历年最优，但居民反映雾霾很重。请分析可能的解释。'">示例: 数据与感受矛盾</button>
+      </div>
       <label for="questionInput">采访问题</label>
       <textarea id="questionInput" rows="4" placeholder="例如: 请分别用支持与反对视角评价某项公共政策。"></textarea>
+      <p id="status" role="status" aria-live="polite" class="status-hint">状态: 等待输入</p>
       <button id="runBtn" type="button">并发对比 3 模型</button>
     </section>
 
@@ -90,8 +109,20 @@
 
   <!-- Cross-Project Navigation -->
   <nav style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
-    <a href="https://yuuqq.github.io/_codex/" style="text-decoration:none;">📋 工具箱导航</a>
+    <a href="https://yuuqq.github.io/journalism-toolbox/" style="text-decoration:none;">📋 工具箱导航</a>
     <span style="opacity:.4">P01</span>
   </nav>
+  <script src="../shared/dark-toggle.js" defer></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
+  <script src="../shared/cmd-palette.js" defer></script>
+  <script src="../shared/toast.js" defer></script>
+  <script src="../shared/onboarding.js" defer></script>
+  <script src="../shared/url-state.js" defer></script>
+
+  <script src="../shared/pedagogy-data-p1.js" defer></script>
+  <script src="../shared/pedagogy-data-p2.js" defer></script>
+  <script src="../shared/global-nav.js" defer></script>
+  <script src="../shared/kbd-hints.js" defer></script>
 </body>
 </html>
+
