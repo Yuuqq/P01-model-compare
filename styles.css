@@ -171,3 +171,49 @@ details.teach-card[open] summary {
     .hero { background: var(--card, #fff); }
   }
 }
+
+/* =====================================================================
+ * v2.5 tool-specific — per-tool unique enhancements
+ * Archetypes: chart_svg, json_textarea, link_list
+ * ===================================================================== */
+
+/* Chart/SVG visualization emphasis */
+svg { display: block; max-width: 100%; }
+svg text { font-family: ui-sans-serif, system-ui, "Noto Sans SC", sans-serif; }
+.chart, .chart-card, .chartWrap, [id="chart"], [id="scatterPlot"], [id="chartContainer"] {
+  border-radius: 12px;
+  background: var(--card, #fff);
+  position: relative;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  svg [data-bar], svg .bar, svg path[data-segment], svg rect[data-bar] {
+    transition: opacity 0.15s ease;
+  }
+  svg [data-bar]:hover, svg .bar:hover { opacity: 0.85; }
+}
+
+/* JSON / code textarea */
+textarea[id*="json"i], textarea[id*="config"i], textarea[id="input"], textarea#configArea, textarea#configInput {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Cascadia Code", "Source Code Pro", monospace;
+  font-size: 0.88em;
+  line-height: 1.55;
+  tab-size: 2;
+  -moz-tab-size: 2;
+}
+
+/* Link / source / feed list rows */
+.links li, .feed-list li, .sources li, .episode-list li, .history-list li, .chapters-list li {
+  border-radius: 8px;
+  transition: background 0.12s ease, transform 0.12s ease;
+  padding: 6px 8px;
+}
+@media (hover: hover) {
+  .links li:hover, .feed-list li:hover, .sources li:hover, .episode-list li:hover, .history-list li:hover {
+    background: rgba(37,99,235,0.06);
+    background: color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 6%, transparent);
+  }
+}
+.links a, .feed-list a, .sources a, .episode-list a {
+  text-underline-offset: 2px;
+  transition: color 0.12s ease;
+}
