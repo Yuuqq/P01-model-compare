@@ -68,19 +68,19 @@ runBtn?.addEventListener("click", async () => {
   
   if (!question) {
     statusEl.textContent = "错误：请先输入采访问题。";
-    statusEl.style.color = "var(--error)";
+    statusEl.style.color = "var(--bad)";
     return;
   }
 
   statusEl.textContent = "状态: 正在并发请求模型...";
-  statusEl.style.color = "var(--text)";
+  statusEl.style.color = "var(--ink)";
 
   const values = panels.map(panelValues);
   for (let i = 0; i < values.length; i += 1) {
     const v = values[i];
     if (!v.endpoint || !v.model || !v.apiKey) {
       statusEl.textContent = `错误：模型 ${i + 1} 的 Endpoint/Model/API Key 不能为空。`;
-      statusEl.style.color = "var(--error)";
+      statusEl.style.color = "var(--bad)";
       return;
     }
   }
