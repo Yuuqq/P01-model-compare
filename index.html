@@ -1,129 +1,106 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>" />
-  <title>P01 多模型口径对比器</title>
-    <link rel="stylesheet" href="../shared/design-tokens.css" />
-<link rel="stylesheet" href="./modern-styles.css" />
-<link rel="stylesheet" href="./styles.css" />
-  <meta name="description" content="神农尝百草多模型口径对比器。P01 多模型口径对比器" />
-  <meta property="og:title" content="P01 神农尝百草多模型口径对比器" />
-  <meta property="og:description" content="神农尝百草多模型口径对比器 — 前端纯静态新闻工具" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://yuuqq.github.io/P01-model-compare/" />
-  <link rel="manifest" href="./manifest.json" />
-<style media="print">
-.gnav,.pedagogy-panel,.explore-section,[class*="dark-toggle"],button[aria-label]{display:none!important}
-body{background:#fff!important;color:#000!important;font-size:11pt}
-.app,main,.container{box-shadow:none!important;border:none!important;padding:0!important}
-a{color:#000!important;text-decoration:underline}
-a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
-@page{margin:2cm}
-</style>
-</head>
-<body>
-  <main aria-label="主内容区域" class="app">
-    <header class="hero">
-      <h1>神农尝百草多模型口径对比器</h1>
-      <p>同一问题并发询问 3 个模型，直接比立场、偏见与幻觉。</p>
-      <p class="note">BYOK 直连模式: API Key 只在当前页面内存中使用，不写入服务器。</p>
-    </header>
+  <html lang="zh-CN" class="type-scale-v22">
+  <head>
+    <meta charset="utf-8"/>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="color-scheme" content="light dark">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="P01 AI模型对比工作台">
+  <meta property="og:description" content="AI 模型对比工作台">
+    <title>P01 AI模型对比工作台</title>
+    <link rel="stylesheet" href="../shared/design-tokens.css"/>
+    <link rel="stylesheet" href="./styles.css"/>
+    <meta name="description" content="多模型并发对比工作台：同一问题同时发给多个AI模型，交叉验证识别幻觉。"/>
+    <link rel="manifest" href="./manifest.json"/>
+  </head>
+  <body>
+  <a href="#main" class="skip-link">跳到主内容 / Skip to main content</a>
+    <main id="main" aria-label="主内容区域" class="app">
+      <header class="hero">
+        <h1>AI 模型对比工作台</h1>
+        <p>同一问题同时发送多个 AI 模型，交叉对比输出，识别幻觉与差异。</p>
+      </header>
 
-    <section class="question">
-      <details class="teach-card" open>
-        <summary>🎓 如何使用多模型对比</summary>
-        <p>将同一问题同时发送给不同 AI 模型，观察它们在<strong>立场倾向</strong>、<strong>事实幻觉</strong>、<strong>信源引用</strong>三个维度的差异。这是新闻学中“交叉核验”思维的 AI 时代延伸。</p>
-      </details>
-      <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
-        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='请分别用支持与反对视角评价城市坟地复拍政策。'">示例: 城市拆迁政策</button>
-        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='某能源巨头发布纯利润数据显示增长，但网上又有漏油事故报告。请综合分析这家公司的综合表现。'">示例: 企业 ESG 争议</button>
-        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='某市宣称空气质量达到历年最优，但居民反映雾霾很重。请分析可能的解释。'">示例: 数据与感受矛盾</button>
+      <section class="card">
+        <details class="teach-card" open>
+          <summary>🎓 为什么要多模型交叉验证？</summary>
+          <p>单一 AI 模型的输出无法自证真实性。不同模型在同一问题上给出矛盾答案时，说明该信息存疑，需人工核查。这是防范 <strong>AI 幻觉</strong> 的基础工作流：不同模型相互质疑，记者做最终裁决。</p>
+        </details>
+      </section>
+
+      <section class="card">
+        <label for="questionInput">问题（Ctrl+Enter 发送）</label>
+        <div class="preset-row">
+          <span>预设：</span>
+          <button type="button" class="preset-btn">幸存者偏差</button>
+          <button type="button" class="preset-btn">图片核实步骤</button>
+          <button type="button" class="preset-btn">信息茧房</button>
+          <button type="button" class="preset-btn">统计显著性</button>
+          <button type="button" class="preset-btn">Deepfake特征</button>
+        </div>
+        <textarea id="questionInput" rows="3" placeholder="输入问题，所有模型将并发响应…" aria-label="问题输入"></textarea>
+        <div class="btn-row">
+          <button id="runBtn" type="button">▶ 并发提问</button>
+          <button id="exportBtn" type="button" class="export-btn" disabled>导出对比报告</button>
+        </div>
+        <p id="status" role="status" aria-live="polite">状态: 填写模型配置后点击发送</p>
+      </section>
+
+      <div class="panels-grid">
+        <!-- Panel 1 -->
+        <article class="card panel">
+          <div class="panel-label">模型 A</div>
+          <label>API Endpoint</label>
+          <input type="url" class="endpoint" placeholder="https://api.openai.com" value="https://api.openai.com"/>
+          <label>Model</label>
+          <input type="text" class="model" placeholder="gpt-4o-mini" value="gpt-4o-mini"/>
+          <label>API Key</label>
+          <input type="password" class="apiKey" placeholder="sk-…"/>
+          <div class="response-time"></div>
+          <div class="out" aria-label="模型A响应"></div>
+        </article>
+        <!-- Panel 2 -->
+        <article class="card panel">
+          <div class="panel-label">模型 B</div>
+          <label>API Endpoint</label>
+          <input type="url" class="endpoint" placeholder="https://api.deepseek.com"/>
+          <label>Model</label>
+          <input type="text" class="model" placeholder="deepseek-chat"/>
+          <label>API Key</label>
+          <input type="password" class="apiKey" placeholder="sk-…"/>
+          <div class="response-time"></div>
+          <div class="out" aria-label="模型B响应"></div>
+        </article>
+        <!-- Panel 3 -->
+        <article class="card panel">
+          <div class="panel-label">模型 C</div>
+          <label>API Endpoint</label>
+          <input type="url" class="endpoint" placeholder="https://generativelanguage.googleapis.com/v1beta/openai"/>
+          <label>Model</label>
+          <input type="text" class="model" placeholder="gemini-2.0-flash"/>
+          <label>API Key</label>
+          <input type="password" class="apiKey" placeholder="AIza…"/>
+          <div class="response-time"></div>
+          <div class="out" aria-label="模型C响应"></div>
+        </article>
       </div>
-      <label for="questionInput">采访问题</label>
-      <textarea id="questionInput" rows="4" placeholder="例如: 请分别用支持与反对视角评价某项公共政策。"></textarea>
-      <p id="status" role="status" aria-live="polite" class="status-hint">状态: 等待输入</p>
-      <button id="runBtn" type="button">并发对比 3 模型</button>
-    </section>
 
-    <section class="grid" aria-label="模型对比面板">
-      <article class="panel" data-panel="a">
-        <h2>模型 A</h2>
-        <div class="form-row">
-          <label for="aEndpoint">Endpoint</label>
-          <input class="endpoint" id="aEndpoint" type="url" placeholder="https://api.deepseek.com/chat/completions" />
-        </div>
-        <div class="form-row">
-          <label for="aModel">Model</label>
-          <input class="model" id="aModel" type="text" placeholder="deepseek-chat" />
-        </div>
-        <div class="form-row">
-          <label for="aApiKey">API Key</label>
-          <input class="apiKey" id="aApiKey" type="password" placeholder="sk-..." />
-        </div>
-        <div class="out" aria-live="polite">等待输入...</div>
-      </article>
+      <section class="card">
+        <h2 style="margin:0 0 10px;font-size:1rem">历史对比记录</h2>
+        <ul id="historyList" class="history-list"></ul>
+      </section>
+    </main>
 
-      <article class="panel" data-panel="b">
-        <h2>模型 B</h2>
-        <div class="form-row">
-          <label for="bEndpoint">Endpoint</label>
-          <input class="endpoint" id="bEndpoint" type="url" placeholder="https://api.moonshot.cn/v1/chat/completions" />
-        </div>
-        <div class="form-row">
-          <label for="bModel">Model</label>
-          <input class="model" id="bModel" type="text" placeholder="moonshot-v1-8k" />
-        </div>
-        <div class="form-row">
-          <label for="bApiKey">API Key</label>
-          <input class="apiKey" id="bApiKey" type="password" placeholder="sk-..." />
-        </div>
-        <div class="out" aria-live="polite">等待输入...</div>
-      </article>
-
-      <article class="panel" data-panel="c">
-        <h2>模型 C</h2>
-        <div class="form-row">
-          <label for="cEndpoint">Endpoint</label>
-          <input class="endpoint" id="cEndpoint" type="url" placeholder="https://api.openai.com/v1/chat/completions" />
-        </div>
-        <div class="form-row">
-          <label for="cModel">Model</label>
-          <input class="model" id="cModel" type="text" placeholder="gpt-4o-mini" />
-        </div>
-        <div class="form-row">
-          <label for="cApiKey">API Key</label>
-          <input class="apiKey" id="cApiKey" type="password" placeholder="sk-..." />
-        </div>
-        <div class="out" aria-live="polite">等待输入...</div>
-      </article>
-    </section>
-  </main>
-  <script src="./pm-metrics.js" defer></script>
-<script src="./app.js" defer></script>
-
-  <!-- Privacy Notice -->
-  <div style="text-align:center;padding:12px 16px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:24px;">
-    🔒 隐私提示：本工具无自建服务器，数据仅由浏览器直连你所配置的模型服务商，请自行保管 API Key。
-  </div>
-
-  <!-- Cross-Project Navigation -->
-  <nav aria-label="工具箱导航" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
-    <a href="https://yuuqq.github.io/journalism-toolbox/" style="text-decoration:none;">📋 工具箱导航</a>
-    <span style="opacity:.4">P01</span>
-  </nav>
-
-<script src="../shared/dark-toggle.js" defer></script>
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
-<script src="../shared/cmd-palette.js" defer></script>
-<script src="../shared/toast.js" defer></script>
-<script src="../shared/onboarding.js" defer></script>
-<script src="../shared/pedagogy-data-p1.js" defer></script>
-<script src="../shared/pedagogy-data-p2.js" defer></script>
-<script src="../shared/global-nav.js" defer></script>
-<script src="../shared/kbd-hints.js" defer></script>
-  <script src="../shared/url-state.js" defer></script>
-</body>
-</html>
-
+    <div style="text-align:center;padding:12px 16px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:24px;">🔒 API Key 仅在本地浏览器内使用，不经过任何中间服务器。</div>
+    <nav style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
+      <a href="https://yuuqq.github.io/journalism-toolbox/" style="text-decoration:none;">📋 工具箱导航</a>
+      <span style="opacity:.4">P01</span>
+    </nav>
+    <script src="./pm-metrics.js" defer></script>
+    <script src="./app.js" defer></script>
+    <script src="../shared/releases/v2.6/loader.js" data-modules="dark,cmd,toast,onboarding,pedagogy-p1,pedagogy-p2,nav,kbd"></script>
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
+  </body>
+  </html>
