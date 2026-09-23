@@ -130,26 +130,45 @@ runBtn?.addEventListener("click", async () => {
   const demoBtn = document.createElement('button');
   demoBtn.id = 'demoBtn';
   demoBtn.type = 'button';
-  demoBtn.textContent = '🎯 查看示例对比结果（无需 API Key）';
-  demoBtn.style.cssText = 'margin-top:8px;border:2px dashed var(--accent,#c7491f);border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;color:var(--accent,#c7491f);background:transparent;width:100%;font-size:1rem;';
+  demoBtn.textContent = '查看示例对比结果（无需 API Key）';
+  demoBtn.setAttribute('aria-label', '查看示例对比结果（无需 API Key）');
+  demoBtn.style.cssText = 'margin-top:8px;min-height:44px;border:2px dashed var(--cinnabar,#A2402F);border-radius:6px;padding:10px 16px;font-weight:700;cursor:pointer;color:var(--cinnabar,#A2402F);background:transparent;width:100%;font-size:1rem;animation:none;';
   const runBtn = document.getElementById('runBtn');
-  if (runBtn) runBtn.parentNode.insertBefore(demoBtn, runBtn.nextSibling);
+  if (runBtn && runBtn.parentNode) {
+    runBtn.parentNode.insertBefore(demoBtn, runBtn.nextSibling);
+  } else {
+    const question = document.querySelector('.question') || document.querySelector('main');
+    if (question) question.appendChild(demoBtn);
+  }
 
-  demoBtn.addEventListener('click', function() {
+  function showDemoCompare() {
     const q = document.getElementById('questionInput');
     if (q && !q.value.trim()) q.value = '请分别用支持与反对视角评价城市拆迁政策。';
-    const outs = document.querySelectorAll('.out');
+    const outs = document.querySelectorAll('.panel .out, .out');
     const demoResponses = [
-      '【模型 A · DeepSeek】\n\n从支持角度看，城市拆迁政策有助于推动城市现代化建设，改善老旧城区的基础设施和居住环境。许多城市通过拆迁实现了交通网络升级和商业区域扩展。\n\n然而，反对者指出拆迁过程中常出现补偿不公、强制执行等问题。据《中国城市发展报告》数据，约32%的被拆迁户对补偿标准表示不满。\n\n⚠️ 需要注意：不同城市、不同时期的政策差异很大，不宜一概而论。建议记者在报道时明确具体城市和时间范围。',
-      '【模型 B · Moonshot】\n\n支持方观点：\n1. 城市更新是现代化必经之路\n2. 拆迁后土地利用效率显著提高\n3. 部分居民通过拆迁改善了住房条件\n\n反对方观点：\n1. 拆迁补偿标准往往低于市场价\n2. 社区文化纽带被强行切断\n3. 弱势群体（老年人、低收入者）缺乏议价能力\n\n📌 记者提示：报道此类议题时，应同时采访政府、开发商和居民三方，避免单一信源。',
-      '【模型 C · GPT-4o】\n\n这是一个典型的"发展 vs 权利"议题框架。\n\n支持论据：城市拆迁在经济学上可以通过"帕累托改进"来论证——如果补偿充分，理论上可以实现多方共赢。深圳、上海等城市的城中村改造案例常被援引。\n\n反对论据：实际操作中，信息不对称和权力不均衡导致"帕累托改进"难以实现。学者于建嵘的研究指出，土地纠纷是中国群体性事件的主要诱因之一。\n\n⚠️ 事实核查建议：上述引用需要进一步验证。AI 模型可能会"幻觉"出不存在的具体数据或引用。'
+      '【模型 A · DeepSeek】\n\n从支持角度看，城市拆迁政策有助于推动城市现代化建设，改善老旧城区的基础设施和居住环境。许多城市通过拆迁实现了交通网络升级和商业区域扩展。\n\n然而，反对者指出拆迁过程中常出现补偿不公、强制执行等问题。据《中国城市发展报告》数据，约32%的被拆迁户对补偿标准表示不满。\n\n⚠️ 课堂示例：以下为模拟对比口径，不是真实 API 返回。建议记者在报道时明确具体城市和时间范围。',
+      '【模型 B · Moonshot】\n\n支持方观点：\n1. 城市更新是现代化必经之路\n2. 拆迁后土地利用效率显著提高\n3. 部分居民通过拆迁改善了住房条件\n\n反对方观点：\n1. 拆迁补偿标准往往低于市场价\n2. 社区文化纽带被强行切断\n3. 弱势群体（老年人、低收入者）缺乏议价能力\n\n📌 课堂示例提示：报道此类议题时，应同时采访政府、开发商和居民三方，避免单一信源。',
+      '【模型 C · GPT-4o】\n\n这是一个典型的"发展 vs 权利"议题框架。\n\n支持论据：城市拆迁在经济学上可以通过"帕累托改进"来论证——如果补偿充分，理论上可以实现多方共赢。深圳、上海等城市的城中村改造案例常被援引。\n\n反对论据：实际操作中，信息不对称和权力不均衡导致"帕累托改进"难以实现。学者于建嵘的研究指出，土地纠纷是中国群体性事件的主要诱因之一。\n\n⚠️ 课堂示例：上述引用需要进一步验证。AI 模型可能会"幻觉"出不存在的具体数据或引用。'
     ];
+    if (!outs.length) {
+      const st = document.getElementById('status');
+      if (st) {
+        st.textContent = '状态: 未找到对比输出面板';
+        st.style.color = 'var(--bad,#A2402F)';
+      }
+      return;
+    }
     outs.forEach(function(el, i) {
-      el.textContent = demoResponses[i] || '';
+      el.textContent = demoResponses[i] || demoResponses[demoResponses.length - 1];
       el.classList.remove('status-error');
       el.classList.add('status-ok');
     });
-    var st = document.getElementById('status');
-    if (st) { st.textContent = '状态: 已加载示例对比结果（模拟数据，非真实 API 调用）'; st.style.color = 'var(--ok,#0b7a3b)'; }
-  });
+    const st = document.getElementById('status');
+    if (st) {
+      st.textContent = '状态: 已加载示例对比结果（课堂模拟数据，非真实 API 调用）';
+      st.style.color = 'var(--ok,#0b7a3b)';
+    }
+  }
+
+  demoBtn.addEventListener('click', showDemoCompare);
 })();
