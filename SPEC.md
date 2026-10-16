@@ -45,6 +45,10 @@
 
 - **Risk**: 厂商返回非 OpenAI 兼容结构
 - **Mitigation**: 提示格式不兼容并显示原始 JSON
+- **Risk**: GitHub Pages 直连官方 API 被 CORS 拦截
+- **Mitigation**: 页面说明限制；超时 60 秒并把错误改成人话
+- **Risk**: 挂起的 Endpoint 让「并发提问」按钮永远灰掉
+- **Mitigation**: `AbortController` + `try/finally`
 
 ## 8. Acceptance Criteria
 
