@@ -10,7 +10,13 @@
 
   const HISTORY_KEY = "p01_history";
   const MAX_HISTORY = 6;
-  let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+  let history = [];
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    history = Array.isArray(parsed) ? parsed : [];
+  } catch (_e) {
+    history = [];
+  }
 
   const PRESET_QUESTIONS = [
     "请说明'幸存者偏差'的概念，并举出一个新闻报道中的真实案例。",
@@ -57,25 +63,47 @@
     }
   }
 
+  function explainNetworkError(err) {
+    if (err && (err.name === "AbortError" || err.name === "TimeoutError")) {
+      return "请求超时（60 秒）。请检查 Endpoint 是否可达，或稍后重试。";
+    }
+    if (err == null) return "请求失败";
+    const msg = String(err.message || err);
+    if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+      return "网络请求失败。浏览器直连官方 API 常被 CORS 拦截；请使用支持跨域的 Endpoint，或自建/教师提供的代理。";
+    }
+    return msg || "请求失败";
+  }
+
   async function askModel(endpoint, model, apiKey, question) {
     const baseUrl = endpoint || "https://api.openai.com";
     const url = baseUrl.replace(/\/+$/, "") + "/v1/chat/completions";
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: Object.assign(
-        { "Content-Type": "application/json" },
-        apiKey ? { Authorization: "Bearer " + apiKey } : {}
-      ),
-      body: JSON.stringify({
-        model: model || "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "你是一位新闻素养教育专家，回答请简洁专业，使用中文，控制在300字以内。" },
-          { role: "user", content: question },
-        ],
-        temperature: 0.7,
-        max_tokens: 600,
-      }),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    let resp;
+    try {
+      resp = await fetch(url, {
+        method: "POST",
+        headers: Object.assign(
+          { "Content-Type": "application/json" },
+          apiKey ? { Authorization: "Bearer " + apiKey } : {}
+        ),
+        body: JSON.stringify({
+          model: model || "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "你是一位新闻素养教育专家，回答请简洁专业，使用中文，控制在300字以内。" },
+            { role: "user", content: question },
+          ],
+          temperature: 0.7,
+          max_tokens: 600,
+        }),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      throw new Error(explainNetworkError(err));
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if (!resp.ok) {
       const err = await resp.text();
       throw new Error("HTTP " + resp.status + ": " + err.substring(0, 200));
@@ -89,48 +117,52 @@
     if (!question) { setStatus("请输入问题"); return; }
 
     runBtn.disabled = true;
-    setStatus("发送中…");
+    try {
+      setStatus("发送中…");
 
-    const activePanels = panels.filter(p =>
-      p.querySelector(".endpoint")?.value.trim() || p.querySelector(".model")?.value.trim()
-    );
-    if (!activePanels.length) {
-      setStatus("请至少填写一个模型配置");
-      runBtn.disabled = false;
-      return;
-    }
-
-    activePanels.forEach(p => {
-      const pv = panelValues(p);
-      setOutput(pv.out, "⏳ 请求中…", "loading");
-      if (pv.timeEl) pv.timeEl.textContent = "";
-    });
-
-    const results = await Promise.all(activePanels.map(async function(p) {
-      const pv = panelValues(p);
-      const t0 = Date.now();
-      try {
-        const ans = await askModel(pv.endpoint, pv.model, pv.apiKey, question);
-        const ms = Date.now() - t0;
-        setOutput(pv.out, ans, "ok");
-        if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
-        return { model: pv.model || pv.endpoint, answer: ans, time: ms };
-      } catch (e) {
-        const ms = Date.now() - t0;
-        setOutput(pv.out, "错误: " + e.message, "error");
-        if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
-        return { model: pv.model || pv.endpoint, answer: "[错误] " + e.message, time: ms };
+      const activePanels = panels.filter(p =>
+        p.querySelector(".endpoint")?.value.trim() || p.querySelector(".model")?.value.trim()
+      );
+      if (!activePanels.length) {
+        setStatus("请至少填写一个模型配置");
+        return;
       }
-    }));
 
-    const entry = { question: question, results: results, time: new Date().toLocaleTimeString("zh-CN") };
-    history.unshift(entry);
-    if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-    renderHistory();
-    setStatus("完成，共 " + activePanels.length + " 个模型响应");
-    runBtn.disabled = false;
-    if (exportBtn) exportBtn.disabled = false;
+      activePanels.forEach(p => {
+        const pv = panelValues(p);
+        setOutput(pv.out, "⏳ 请求中…", "loading");
+        if (pv.timeEl) pv.timeEl.textContent = "";
+      });
+
+      const results = await Promise.all(activePanels.map(async function(p) {
+        const pv = panelValues(p);
+        const t0 = Date.now();
+        try {
+          const ans = await askModel(pv.endpoint, pv.model, pv.apiKey, question);
+          const ms = Date.now() - t0;
+          setOutput(pv.out, ans, "ok");
+          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
+          return { model: pv.model || pv.endpoint, answer: ans, time: ms };
+        } catch (e) {
+          const ms = Date.now() - t0;
+          setOutput(pv.out, "错误: " + e.message, "error");
+          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
+          return { model: pv.model || pv.endpoint, answer: "[错误] " + e.message, time: ms };
+        }
+      }));
+
+      const entry = { question: question, results: results, time: new Date().toLocaleTimeString("zh-CN") };
+      history.unshift(entry);
+      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      } catch (_e) {}
+      renderHistory();
+      setStatus("完成，共 " + activePanels.length + " 个模型响应");
+      if (exportBtn) exportBtn.disabled = false;
+    } finally {
+      runBtn.disabled = false;
+    }
   }
 
   function renderHistory() {
