@@ -12,9 +12,11 @@
 - **In scope**:
   - 同一 Prompt 分发至多个 LLM API (BYOK)
   - 并排对比回答口径差异
+  - 免密钥示例对照（课堂主路径，模拟三栏口径）
 - **Out of scope**:
   - 后端代理或服务端逻辑
   - API Key 持久化存储
+  - 浏览器内对比历史 / HTML 导出（那是 `master` 线能力，不在本教材线）
 
 ## 3. UX
 
@@ -39,12 +41,16 @@
 ## 6. Dependencies
 
 - **Libraries/CDNs**: fetch API (OpenAI 兼容格式)
-- **Local data**: 无
+- **Local data**: 无（不把问题或模型回答写入 localStorage）
 
 ## 7. Risks & Mitigations
 
 - **Risk**: 厂商返回非 OpenAI 兼容结构
 - **Mitigation**: 提示格式不兼容并显示原始 JSON
+- **Risk**: GitHub Pages 直连官方 API 被 CORS 拦截
+- **Mitigation**: UI / README 说明限制；课堂用示例对照；超时 60 秒并恢复按钮
+- **Risk**: 挂起的 Endpoint 让「并发对比」按钮永远灰掉
+- **Mitigation**: `AbortController` + `try/finally`
 
 ## 8. Acceptance Criteria
 
