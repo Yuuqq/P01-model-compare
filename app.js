@@ -18,6 +18,18 @@ function setOutput(el, text, state) {
   if (state === "error") el.classList.add("status-error");
 }
 
+function explainNetworkError(err) {
+  if (err && (err.name === "AbortError" || err.name === "TimeoutError")) {
+    return "请求超时（60 秒）。请检查 Endpoint 是否可达，或稍后重试。";
+  }
+  if (err == null) return "请求失败";
+  const msg = String(err.message || err);
+  if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+    return "网络请求失败。浏览器直连官方 API 常被 CORS 拦截；请使用支持跨域的 Endpoint，或自建/教师提供的代理。无密钥课堂请改用「查看示例对比结果」。";
+  }
+  return msg || "请求失败";
+}
+
 async function askModel({ endpoint, model, apiKey, question }) {
   const payload = {
     model,
@@ -32,14 +44,24 @@ async function askModel({ endpoint, model, apiKey, question }) {
     temperature: 0.7
   };
 
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(payload)
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+  let res;
+  try {
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+  } catch (err) {
+    throw new Error(explainNetworkError(err));
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const text = await res.text();
   let json = null;
@@ -88,23 +110,25 @@ runBtn?.addEventListener("click", async () => {
   runBtn.disabled = true;
   values.forEach(v => setOutput(v.out, "请求中...", ""));
 
-  await Promise.all(
-    values.map(async v => {
-      try {
-        const answer = await askModel({
-          endpoint: v.endpoint,
-          model: v.model,
-          apiKey: v.apiKey,
-          question
-        });
-        setOutput(v.out, answer, "ok");
-      } catch (err) {
-        setOutput(v.out, `请求失败: ${err.message}`, "error");
-      }
-    })
-  );
-
-  runBtn.disabled = false;
+  try {
+    await Promise.all(
+      values.map(async v => {
+        try {
+          const answer = await askModel({
+            endpoint: v.endpoint,
+            model: v.model,
+            apiKey: v.apiKey,
+            question
+          });
+          setOutput(v.out, answer, "ok");
+        } catch (err) {
+          setOutput(v.out, `请求失败: ${err.message}`, "error");
+        }
+      })
+    );
+  } finally {
+    runBtn.disabled = false;
+  }
 });
 
 // === PM Metrics Integration ===

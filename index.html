@@ -28,16 +28,16 @@ a[href]::after{content:" (" attr(href) ")";font-size:9pt;color:#666}
     <header class="hero">
       <h1>神农尝百草多模型口径对比器</h1>
       <p>同一问题并发询问 3 个模型，直接比立场、偏见与幻觉。</p>
-      <p class="note">BYOK 直连模式: API Key 只在当前页面内存中使用，不写入服务器。</p>
+      <p class="note">BYOK 直连模式: API Key 只在当前页面内存中使用，不写入服务器。官方云 API 在 GitHub Pages 上常被 CORS 拦截；无密钥课堂请先点「查看示例对比结果」。真实请求最长等待 60 秒。</p>
     </header>
 
     <section class="question">
       <details class="teach-card" open>
         <summary>🎓 如何使用多模型对比</summary>
-        <p>将同一问题同时发送给不同 AI 模型，观察它们在<strong>立场倾向</strong>、<strong>事实幻觉</strong>、<strong>信源引用</strong>三个维度的差异。这是新闻学中“交叉核验”思维的 AI 时代延伸。</p>
+        <p>将同一问题同时发送给不同 AI 模型，观察它们在<strong>立场倾向</strong>、<strong>事实幻觉</strong>、<strong>信源引用</strong>三个维度的差异。这是新闻学中“交叉核验”思维的 AI 时代延伸。无 API Key 时请用下方「查看示例对比结果」走完对照；现场直连官方接口可能因 CORS 失败。</p>
       </details>
       <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
-        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='请分别用支持与反对视角评价城市坟地复拍政策。'">示例: 城市拆迁政策</button>
+        <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='请分别用支持与反对视角评价城市拆迁政策。'">示例: 城市拆迁政策</button>
         <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='某能源巨头发布纯利润数据显示增长，但网上又有漏油事故报告。请综合分析这家公司的综合表现。'">示例: 企业 ESG 争议</button>
         <button type="button" class="example-btn" onclick="document.getElementById('questionInput').value='某市宣称空气质量达到历年最优，但居民反映雾霾很重。请分析可能的解释。'">示例: 数据与感受矛盾</button>
       </div>

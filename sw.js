@@ -8,7 +8,7 @@
  * 3. 网络优先 (Network-First) 获取 API 请求
  * 4. 离线回退页面
  */
-const CACHE_NAME = "journalism-tool-P01-v3-parchment-sense-2-3-4-r20260922";
+const CACHE_NAME = "journalism-tool-P01-v3-parchment-sense-2-3-4-r20261016";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -49,7 +49,13 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+        keys
+          .filter(
+            (k) =>
+              k !== CACHE_NAME &&
+              /^(journalism-tool-P01|p01-model-compare|journalism-tool-v)/.test(k)
+          )
+          .map((k) => caches.delete(k))
       )
     )
   );
