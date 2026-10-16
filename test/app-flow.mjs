@@ -15,6 +15,7 @@ class El {
     this.style = {};
     this.children = [];
     this.listeners = {};
+    this.dataset = {};
     this.classList = {
       add() {},
       remove() {}
@@ -22,6 +23,13 @@ class El {
   }
   addEventListener(type, fn) {
     (this.listeners[type] ||= []).push(fn);
+  }
+  appendChild(child) {
+    this.children.push(child);
+    return child;
+  }
+  replaceChildren(...nodes) {
+    this.children = [...nodes];
   }
   querySelector(sel) {
     const key = sel.slice(1);
@@ -71,7 +79,10 @@ const document = {
     if (sel === ".preset-btn") return [];
     return [];
   },
-  addEventListener() {}
+  addEventListener() {},
+  createElement() {
+    return new El();
+  }
 };
 
 let fetchImpl = async () => {

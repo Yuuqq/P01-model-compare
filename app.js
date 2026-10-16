@@ -28,6 +28,12 @@
 
   function setStatus(t) { if (statusEl) statusEl.textContent = "状态: " + t; }
 
+  function escapeHTML(str) {
+    return String(str ?? "").replace(/[&<>'"]/g, function(ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch];
+    });
+  }
+
   function panelValues(panel) {
     return {
       endpoint: panel.querySelector(".endpoint")?.value.trim() || "",
@@ -41,6 +47,7 @@
 
   function setOutput(el, text, state) {
     if (!el) return;
+    el.dataset.source = String(text ?? "");
     el.innerHTML = "";
     el.classList.remove("status-ok", "status-error", "status-loading");
     if (state === "loading") {
@@ -167,27 +174,47 @@
 
   function renderHistory() {
     if (!historyEl) return;
+    historyEl.replaceChildren();
     if (!history.length) {
-      historyEl.innerHTML = '<li style="opacity:.5;font-size:13px">暂无历史对比</li>';
+      const li = document.createElement("li");
+      li.style.cssText = "opacity:.5;font-size:13px";
+      li.textContent = "暂无历史对比";
+      historyEl.appendChild(li);
       return;
     }
-    historyEl.innerHTML = history.map(function(h, i) {
-      const q = h.question.length > 60 ? h.question.substring(0, 60) + "…" : h.question;
-      return '<li class="hist-item"><div class="hist-q">' + q + '</div><div class="hist-meta">' + h.time + ' · ' + h.results.length + ' 个模型</div><button type="button" class="hist-load" data-idx="' + i + '">重载</button></li>';
-    }).join("");
-    historyEl.querySelectorAll(".hist-load").forEach(function(btn) {
+    history.forEach(function(h, i) {
+      const li = document.createElement("li");
+      li.className = "hist-item";
+      const qEl = document.createElement("div");
+      qEl.className = "hist-q";
+      const rawQ = String(h.question || "");
+      qEl.textContent = rawQ.length > 60 ? rawQ.substring(0, 60) + "…" : rawQ;
+      const meta = document.createElement("div");
+      meta.className = "hist-meta";
+      const count = Array.isArray(h.results) ? h.results.length : 0;
+      meta.textContent = String(h.time || "") + " · " + count + " 个模型";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "hist-load";
+      btn.dataset.idx = String(i);
+      btn.textContent = "重载";
       btn.addEventListener("click", function() {
-        const h = history[btn.dataset.idx];
-        questionInput.value = h.question;
-        h.results.forEach(function(r, i) {
-          if (panels[i]) {
-            const pv = panelValues(panels[i]);
-            setOutput(pv.out, r.answer, r.answer.startsWith("[错误]") ? "error" : "ok");
-            if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (r.time / 1000).toFixed(1) + "s";
-          }
+        const item = history[Number(btn.dataset.idx)];
+        if (!item) return;
+        questionInput.value = item.question;
+        (item.results || []).forEach(function(r, idx) {
+          if (!panels[idx]) return;
+          const pv = panelValues(panels[idx]);
+          const answer = String(r.answer || "");
+          setOutput(pv.out, answer, answer.startsWith("[错误]") ? "error" : "ok");
+          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + ((r.time || 0) / 1000).toFixed(1) + "s";
         });
         setStatus("已载入历史对比");
       });
+      li.appendChild(qEl);
+      li.appendChild(meta);
+      li.appendChild(btn);
+      historyEl.appendChild(li);
     });
   }
 
@@ -203,12 +230,14 @@
       const question = questionInput.value.trim();
       const panelData = panels.map(function(p) {
         const pv = panelValues(p);
-        return { label: pv.label || pv.model || "模型", content: pv.out ? pv.out.innerHTML : "" };
+        const source = pv.out ? (pv.out.dataset.source ?? pv.out.textContent) : "";
+        return { label: pv.label || pv.model || "模型", content: source };
       }).filter(function(p) { return p.content; });
       const cols = panelData.map(function(p) {
-        return '<div class="panel-card"><div class="panel-label">' + p.label + '</div><div>' + p.content + '</div></div>';
+        const body = escapeHTML(p.content).replace(/\n/g, "<br>");
+        return '<div class="panel-card"><div class="panel-label">' + escapeHTML(p.label) + '</div><div>' + body + '</div></div>';
       }).join("");
-      const html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><title>AI模型对比</title><style>body{font-family:system-ui;max-width:1200px;margin:0 auto;padding:20px;background:#f5f7fa}.grid{display:grid;grid-template-columns:repeat(' + panelData.length + ',1fr);gap:16px}.panel-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #ddd}.panel-label{font-weight:700;margin-bottom:8px;font-size:.9rem;color:#555}</style></head><body><h1>问题: ' + question + '</h1><div class="grid">' + cols + '</div><p style="margin-top:20px;font-size:11px;color:#aaa">由 P01 AI模型对比工作台生成 · ' + new Date().toLocaleString("zh-CN") + '</p></body></html>';
+      const html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><title>AI模型对比</title><style>body{font-family:system-ui;max-width:1200px;margin:0 auto;padding:20px;background:#f5f7fa}.grid{display:grid;grid-template-columns:repeat(' + panelData.length + ',1fr);gap:16px}.panel-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #ddd}.panel-label{font-weight:700;margin-bottom:8px;font-size:.9rem;color:#555}</style></head><body><h1>问题: ' + escapeHTML(question) + '</h1><div class="grid">' + cols + '</div><p style="margin-top:20px;font-size:11px;color:#aaa">由 P01 AI模型对比工作台生成 · ' + new Date().toLocaleString("zh-CN") + '</p></body></html>';
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
