@@ -1,234 +1,198 @@
-// P01 AI模型对比工作台 v2.0
-  // 新增：预设问题、响应时间、Markdown渲染、历史保存、导出报告
+const runBtn = document.getElementById("runBtn");
+const questionInput = document.getElementById("questionInput");
+const panels = [...document.querySelectorAll(".panel")];
 
-  const runBtn = document.getElementById("runBtn");
-  const questionInput = document.getElementById("questionInput");
-  const panels = [...document.querySelectorAll(".panel")];
-  const historyEl = document.getElementById("historyList");
-  const exportBtn = document.getElementById("exportBtn");
-  const statusEl = document.getElementById("status");
+function panelValues(panel) {
+  return {
+    endpoint: panel.querySelector(".endpoint").value.trim(),
+    model: panel.querySelector(".model").value.trim(),
+    apiKey: panel.querySelector(".apiKey").value.trim(),
+    out: panel.querySelector(".out")
+  };
+}
 
-  const HISTORY_KEY = "p01_history";
-  const MAX_HISTORY = 6;
-  let history = [];
+function setOutput(el, text, state) {
+  el.textContent = text;
+  el.classList.remove("status-ok", "status-error");
+  if (state === "ok") el.classList.add("status-ok");
+  if (state === "error") el.classList.add("status-error");
+}
+
+function explainNetworkError(err) {
+  if (err && (err.name === "AbortError" || err.name === "TimeoutError")) {
+    return "请求超时（60 秒）。请检查 Endpoint 是否可达，或稍后重试。";
+  }
+  if (err == null) return "请求失败";
+  const msg = String(err.message || err);
+  if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+    return "网络请求失败。浏览器直连官方 API 常被 CORS 拦截；请使用支持跨域的 Endpoint，或自建/教师提供的代理。无密钥课堂请改用「查看示例对比结果」。";
+  }
+  return msg || "请求失败";
+}
+
+async function askModel({ endpoint, model, apiKey, question }) {
+  const payload = {
+    model,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are assisting journalism students. Be explicit about uncertainty and avoid fabrications."
+      },
+      { role: "user", content: question }
+    ],
+    temperature: 0.7
+  };
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+  let res;
   try {
-    history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-  } catch (e) {
-    history = [];
+    res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+  } catch (err) {
+    throw new Error(explainNetworkError(err));
+  } finally {
+    clearTimeout(timeoutId);
   }
 
-  function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, tag => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      "'": '&#39;',
-      '"': '&quot;'
-    }[tag] || tag));
+  const text = await res.text();
+  let json = null;
+  try {
+    json = JSON.parse(text);
+  } catch (_err) {
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${text}`);
+    return text;
   }
 
-  const PRESET_QUESTIONS = [
-    "请说明'幸存者偏差'的概念，并举出一个新闻报道中的真实案例。",
-    "如何核实一张新闻照片的真实性？请给出5个步骤。",
-    "什么是信息茧房？算法推荐如何加剧这一问题？",
-    "解释'统计显著性'与'实际意义'的区别，用非专业人士能理解的语言。",
-    "深度伪造（Deepfake）视频有哪些常见识别特征？",
-  ];
-
-  function setStatus(t) { if (statusEl) statusEl.textContent = "状态: " + t; }
-
-  function panelValues(panel) {
-    return {
-      endpoint: panel.querySelector(".endpoint")?.value.trim() || "",
-      model: panel.querySelector(".model")?.value.trim() || "",
-      apiKey: panel.querySelector(".apiKey")?.value.trim() || "",
-      out: panel.querySelector(".out"),
-      timeEl: panel.querySelector(".response-time"),
-      label: panel.querySelector(".panel-label")?.textContent || "",
-    };
+  if (!res.ok) {
+    const message = json?.error?.message || text || `HTTP ${res.status}`;
+    throw new Error(message);
   }
 
-  function setOutput(el, text, state) {
-    if (!el) return;
-    el.innerHTML = "";
-    el.classList.remove("status-ok", "status-error", "status-loading");
-    if (state === "loading") {
-      el.classList.add("status-loading");
-      el.textContent = text;
+  const content = json?.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("响应格式无法识别，未找到 choices[0].message.content。");
+  }
+  return content;
+}
+
+runBtn?.addEventListener("click", async () => {
+  const question = questionInput.value.trim();
+  const statusEl = document.getElementById("status");
+  
+  if (!question) {
+    statusEl.textContent = "错误：请先输入采访问题。";
+    statusEl.style.color = "var(--bad)";
+    return;
+  }
+
+  statusEl.textContent = "状态: 正在并发请求模型...";
+  statusEl.style.color = "var(--ink)";
+
+  const values = panels.map(panelValues);
+  for (let i = 0; i < values.length; i += 1) {
+    const v = values[i];
+    if (!v.endpoint || !v.model || !v.apiKey) {
+      statusEl.textContent = `错误：模型 ${i + 1} 的 Endpoint/Model/API Key 不能为空。`;
+      statusEl.style.color = "var(--bad)";
       return;
     }
-    if (state === "ok") {
-      el.classList.add("status-ok");
-      const html = text
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.+?)\*/g, "<em>$1</em>")
-        .replace(/^#{1,3} (.+)$/gm, "<b>$1</b>")
-        .replace(/\n/g, "<br>");
-      el.innerHTML = html;
-    } else {
-      el.classList.add("status-error");
-      el.textContent = text;
-    }
   }
 
-  async function askModel(endpoint, model, apiKey, question) {
-    const baseUrl = endpoint || "https://api.openai.com";
-    const url = baseUrl.replace(/\/+$/, "") + "/v1/chat/completions";
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
-    let resp;
-    try {
-      resp = await fetch(url, {
-        method: "POST",
-        headers: Object.assign(
-          { "Content-Type": "application/json" },
-          apiKey ? { Authorization: "Bearer " + apiKey } : {}
-        ),
-        body: JSON.stringify({
-          model: model || "gpt-4o-mini",
-          messages: [
-            { role: "system", content: "你是一位新闻素养教育专家，回答请简洁专业，使用中文，控制在300字以内。" },
-            { role: "user", content: question },
-          ],
-          temperature: 0.7,
-          max_tokens: 600,
-        }),
-        signal: controller.signal
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
-    if (!resp.ok) {
-      const err = await resp.text();
-      throw new Error("HTTP " + resp.status + ": " + err.substring(0, 200));
-    }
-    const data = await resp.json();
-    return data.choices && data.choices[0] ? data.choices[0].message.content : JSON.stringify(data);
-  }
+  runBtn.disabled = true;
+  values.forEach(v => setOutput(v.out, "请求中...", ""));
 
-  async function runAll() {
-    const question = questionInput.value.trim();
-    if (!question) { setStatus("请输入问题"); return; }
-
-    runBtn.disabled = true;
-    setStatus("发送中…");
-
-    try {
-      const activePanels = panels.filter(p =>
-        p.querySelector(".endpoint")?.value.trim() || p.querySelector(".model")?.value.trim()
-      );
-      if (!activePanels.length) {
-        setStatus("请至少填写一个模型配置");
-        return;
-      }
-
-      activePanels.forEach(p => {
-        const pv = panelValues(p);
-        setOutput(pv.out, "⏳ 请求中…", "loading");
-        if (pv.timeEl) pv.timeEl.textContent = "";
-      });
-
-      const results = await Promise.all(activePanels.map(async function(p) {
-        const pv = panelValues(p);
-        const panelIndex = panels.indexOf(p);
-        const t0 = Date.now();
+  try {
+    await Promise.all(
+      values.map(async v => {
         try {
-          const ans = await askModel(pv.endpoint, pv.model, pv.apiKey, question);
-          const ms = Date.now() - t0;
-          setOutput(pv.out, ans, "ok");
-          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
-          return { panelIndex: panelIndex, model: pv.model || pv.endpoint, answer: ans, time: ms };
-        } catch (e) {
-          const ms = Date.now() - t0;
-          setOutput(pv.out, "错误: " + e.message, "error");
-          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
-          return { panelIndex: panelIndex, model: pv.model || pv.endpoint, answer: "[错误] " + e.message, time: ms };
+          const answer = await askModel({
+            endpoint: v.endpoint,
+            model: v.model,
+            apiKey: v.apiKey,
+            question
+          });
+          setOutput(v.out, answer, "ok");
+        } catch (err) {
+          setOutput(v.out, `请求失败: ${err.message}`, "error");
         }
-      }));
+      })
+    );
+  } finally {
+    runBtn.disabled = false;
+  }
+});
 
-      const entry = { question: question, results: results, time: new Date().toLocaleTimeString("zh-CN") };
-      history.unshift(entry);
-      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-      try {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-      } catch (e) {
-        console.warn("localStorage quota exceeded or access denied", e);
+// === PM Metrics Integration ===
+(function() {
+  try {
+    if (!window.pmMetrics) return;
+    // Auto mark task start on first meaningful interaction
+    let taskStarted = false;
+    document.addEventListener('click', function(e) {
+      if (taskStarted) return;
+      const btn = e.target.closest('button');
+      if (btn) {
+        taskStarted = true;
+        window.pmMetrics.markTaskStart('model_compare_task');
       }
-      renderHistory();
-      setStatus("完成，共 " + activePanels.length + " 个模型响应");
-    } finally {
-      runBtn.disabled = false;
-      if (exportBtn) exportBtn.disabled = false;
-    }
+    }, { once: false });
+  } catch (_e) {}
+})();
+
+
+// === Demo Mode: Show simulated results without API keys ===
+(function() {
+  const demoBtn = document.createElement('button');
+  demoBtn.id = 'demoBtn';
+  demoBtn.type = 'button';
+  demoBtn.textContent = '查看示例对比结果（无需 API Key）';
+  demoBtn.setAttribute('aria-label', '查看示例对比结果（无需 API Key）');
+  demoBtn.style.cssText = 'margin-top:8px;min-height:44px;border:2px dashed var(--cinnabar,#A2402F);border-radius:6px;padding:10px 16px;font-weight:700;cursor:pointer;color:var(--cinnabar,#A2402F);background:transparent;width:100%;font-size:1rem;animation:none;';
+  const runBtn = document.getElementById('runBtn');
+  if (runBtn && runBtn.parentNode) {
+    runBtn.parentNode.insertBefore(demoBtn, runBtn.nextSibling);
+  } else {
+    const question = document.querySelector('.question') || document.querySelector('main');
+    if (question) question.appendChild(demoBtn);
   }
 
-  function renderHistory() {
-    if (!historyEl) return;
-    if (!history.length) {
-      historyEl.innerHTML = '<li style="opacity:.5;font-size:13px">暂无历史对比</li>';
+  function showDemoCompare() {
+    const q = document.getElementById('questionInput');
+    if (q && !q.value.trim()) q.value = '请分别用支持与反对视角评价城市拆迁政策。';
+    const outs = document.querySelectorAll('.panel .out, .out');
+    const demoResponses = [
+      '【模型 A · DeepSeek】\n\n从支持角度看，城市拆迁政策有助于推动城市现代化建设，改善老旧城区的基础设施和居住环境。许多城市通过拆迁实现了交通网络升级和商业区域扩展。\n\n然而，反对者指出拆迁过程中常出现补偿不公、强制执行等问题。据《中国城市发展报告》数据，约32%的被拆迁户对补偿标准表示不满。\n\n⚠️ 课堂示例：以下为模拟对比口径，不是真实 API 返回。建议记者在报道时明确具体城市和时间范围。',
+      '【模型 B · Moonshot】\n\n支持方观点：\n1. 城市更新是现代化必经之路\n2. 拆迁后土地利用效率显著提高\n3. 部分居民通过拆迁改善了住房条件\n\n反对方观点：\n1. 拆迁补偿标准往往低于市场价\n2. 社区文化纽带被强行切断\n3. 弱势群体（老年人、低收入者）缺乏议价能力\n\n📌 课堂示例提示：报道此类议题时，应同时采访政府、开发商和居民三方，避免单一信源。',
+      '【模型 C · GPT-4o】\n\n这是一个典型的"发展 vs 权利"议题框架。\n\n支持论据：城市拆迁在经济学上可以通过"帕累托改进"来论证——如果补偿充分，理论上可以实现多方共赢。深圳、上海等城市的城中村改造案例常被援引。\n\n反对论据：实际操作中，信息不对称和权力不均衡导致"帕累托改进"难以实现。学者于建嵘的研究指出，土地纠纷是中国群体性事件的主要诱因之一。\n\n⚠️ 课堂示例：上述引用需要进一步验证。AI 模型可能会"幻觉"出不存在的具体数据或引用。'
+    ];
+    if (!outs.length) {
+      const st = document.getElementById('status');
+      if (st) {
+        st.textContent = '状态: 未找到对比输出面板';
+        st.style.color = 'var(--bad,#A2402F)';
+      }
       return;
     }
-    historyEl.innerHTML = history.map(function(h, i) {
-      const escapedQ = escapeHTML(h.question);
-      const q = escapedQ.length > 60 ? escapedQ.substring(0, 60) + "…" : escapedQ;
-      return '<li class="hist-item"><div class="hist-q">' + q + '</div><div class="hist-meta">' + h.time + ' · ' + h.results.length + ' 个模型</div><button type="button" class="hist-load" data-idx="' + i + '">重载</button></li>';
-    }).join("");
-    historyEl.querySelectorAll(".hist-load").forEach(function(btn) {
-      btn.addEventListener("click", function() {
-        const h = history[btn.dataset.idx];
-        questionInput.value = h.question;
-        h.results.forEach(function(r, i) {
-          const panelIdx = r.panelIndex !== undefined ? r.panelIndex : i;
-          if (panels[panelIdx]) {
-            const pv = panelValues(panels[panelIdx]);
-            setOutput(pv.out, r.answer, r.answer.startsWith("[错误]") ? "error" : "ok");
-            if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (r.time / 1000).toFixed(1) + "s";
-          }
-        });
-        setStatus("已载入历史对比");
-      });
+    outs.forEach(function(el, i) {
+      el.textContent = demoResponses[i] || demoResponses[demoResponses.length - 1];
+      el.classList.remove('status-error');
+      el.classList.add('status-ok');
     });
+    const st = document.getElementById('status');
+    if (st) {
+      st.textContent = '状态: 已加载示例对比结果（课堂模拟数据，非真实 API 调用）';
+      st.style.color = 'var(--ok,#0b7a3b)';
+    }
   }
 
-  document.querySelectorAll(".preset-btn").forEach(function(btn, i) {
-    btn.addEventListener("click", function() {
-      questionInput.value = PRESET_QUESTIONS[i] || PRESET_QUESTIONS[0];
-      setStatus("已填入预设问题");
-    });
-  });
-
-  if (exportBtn) {
-    exportBtn.addEventListener("click", function() {
-      const question = questionInput.value.trim();
-      const panelData = panels.map(function(p) {
-        const pv = panelValues(p);
-        return { label: escapeHTML(pv.label || pv.model || "模型"), content: pv.out ? pv.out.innerHTML : "" };
-      }).filter(function(p) { return p.content; });
-      const cols = panelData.map(function(p) {
-        return '<div class="panel-card"><div class="panel-label">' + p.label + '</div><div>' + p.content + '</div></div>';
-      }).join("");
-      const html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><title>AI模型对比</title><style>body{font-family:system-ui;max-width:1200px;margin:0 auto;padding:20px;background:#f5f7fa}.grid{display:grid;grid-template-columns:repeat(' + panelData.length + ',1fr);gap:16px}.panel-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #ddd}.panel-label{font-weight:700;margin-bottom:8px;font-size:.9rem;color:#555}</style></head><body><h1>问题: ' + escapeHTML(question) + '</h1><div class="grid">' + cols + '</div><p style="margin-top:20px;font-size:11px;color:#aaa">由 P01 AI模型对比工作台生成 · ' + new Date().toLocaleString("zh-CN") + '</p></body></html>';
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "ai-compare.html"; a.click();
-      URL.revokeObjectURL(url);
-      setStatus("已导出对比报告");
-    });
-  }
-
-  runBtn.addEventListener("click", runAll);
-  questionInput.addEventListener("keydown", function(e) { if (e.key === "Enter" && e.ctrlKey) runAll(); });
-  renderHistory();
-
-  (function() {
-    try {
-      if (!window.pmMetrics) return;
-      let started = false;
-      document.addEventListener("click", function(e) {
-        if (started) return;
-        if (e.target.closest("button")) { started = true; window.pmMetrics.markTaskStart("model_compare_task"); }
-      }, { once: false });
-    } catch (_) {}
-  })();
+  demoBtn.addEventListener('click', showDemoCompare);
+})();

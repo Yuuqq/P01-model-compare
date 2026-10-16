@@ -8,15 +8,25 @@
  * 3. 网络优先 (Network-First) 获取 API 请求
  * 4. 离线回退页面
  */
-const CACHE_NAME = "p01-model-compare-v1";
+const CACHE_NAME = "journalism-tool-P01-v3-parchment-sense-2-3-4-r20261016";
 const CORE_ASSETS = [
   "./",
   "./index.html",
+  "./manifest.json",
   "./styles.css",
+  "./modern-styles.css",
   "./app.js",
   "./pm-metrics.js",
   "../shared/design-tokens.css",
-  "../shared/dark-toggle.js"
+  "../shared/dark-toggle.js",
+  "../shared/cmd-palette.js",
+  "../shared/toast.js",
+  "../shared/onboarding.js",
+  "../shared/pedagogy-data-p1.js",
+  "../shared/pedagogy-data-p2.js",
+  "../shared/global-nav.js",
+  "../shared/kbd-hints.js",
+  "../shared/url-state.js"
 ];
 
 // Install: Pre-cache core assets
@@ -39,7 +49,13 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+        keys
+          .filter(
+            (k) =>
+              k !== CACHE_NAME &&
+              /^(journalism-tool-P01|p01-model-compare|journalism-tool-v)/.test(k)
+          )
+          .map((k) => caches.delete(k))
       )
     )
   );
@@ -53,6 +69,26 @@ self.addEventListener("fetch", (event) => {
   // Skip non-GET and cross-origin API calls
   if (event.request.method !== "GET") return;
   if (url.origin !== self.location.origin) return;
+  const isStyleOrDoc =
+    event.request.destination === "document" ||
+    event.request.destination === "style" ||
+    url.pathname.endsWith(".html") ||
+    url.pathname.endsWith(".css");
+
+  if (isStyleOrDoc) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((c) => c || caches.match("./index.html")))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
@@ -65,6 +101,7 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         }).catch(() => {});
+        event.waitUntil(fetchPromise);
         return cached;
       }
       return fetch(event.request).then((response) => {
