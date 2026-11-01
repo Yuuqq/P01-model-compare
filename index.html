@@ -1,107 +1,105 @@
 <!doctype html>
-  <html lang="zh-CN" class="type-scale-v22">
-  <head>
-    <meta charset="utf-8"/>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <meta name="theme-color" content="#7c3aed">
-  <meta name="color-scheme" content="light dark">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="P01 AI模型对比工作台">
-  <meta property="og:description" content="AI 模型对比工作台">
-    <title>P01 AI模型对比工作台</title>
-    <link rel="stylesheet" href="../shared/design-tokens.css"/>
-    <link rel="stylesheet" href="./styles.css"/>
-    <meta name="description" content="多模型并发对比工作台：同一问题同时发给多个AI模型，交叉验证识别幻觉。"/>
-    <link rel="manifest" href="./manifest.json"/>
-  </head>
-  <body>
+<html lang="zh-CN" class="type-scale-v22">
+<head>
+  <meta charset="utf-8"/>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="theme-color" content="#A2402F"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="P01 多模型对比器"/>
+  <meta property="og:description" content="同一问题同时发给多个 AI 模型，交叉对比输出，识别幻觉与差异。"/>
+  <title>P01 多模型对比器</title>
+  <link rel="stylesheet" href="../shared/design-tokens.css"/>
+  <link rel="stylesheet" href="../shared/modern-styles.css"/>
+  <link rel="stylesheet" href="../shared/tool-chrome.css"/>
+  <link rel="stylesheet" href="./styles.css"/>
+  <meta name="description" content="多模型并发对比工作台：同一问题同时发给多个AI模型，交叉验证识别幻觉。"/>
+  <link rel="manifest" href="./manifest.json"/>
+</head>
+<body>
   <a href="#main" class="skip-link">跳到主内容 / Skip to main content</a>
-    <main id="main" aria-label="主内容区域" class="app">
-      <header class="hero">
-        <h1>AI 模型对比工作台</h1>
-        <p>同一问题同时发送多个 AI 模型，交叉对比输出，识别幻觉与差异。</p>
-        <p class="note">官方云 API 在 GitHub Pages 上常被 CORS 拦截。真实请求最长等待 60 秒，超时后面板会提示，按钮会恢复可点。</p>
-      </header>
+  <header class="tool-chrome" data-tool-id="P01">
+    <a class="tool-chrome__mark" href="../P00-dashboard/">新闻实验工具</a>
+    <span class="tool-chrome__id">P01</span>
+  </header>
+  <details class="tool-teach">
+    <summary>如何使用</summary>
+    <p>单一 AI 模型的输出无法自证真实性。不同模型在同一问题上给出矛盾答案时，说明该信息存疑，需人工核查。这是防范 <strong>AI 幻觉</strong> 的基础工作流：不同模型相互质疑，记者做最终裁决。</p>
+  </details>
+  <main id="main" aria-label="主内容区域" class="app">
+    <header class="hero">
+      <h1>AI 模型对比工作台</h1>
+      <p>同一问题同时发送多个 AI 模型，交叉对比输出，识别幻觉与差异。</p>
+      <p class="note">官方云 API 在 GitHub Pages 上常被 CORS 拦截。真实请求最长等待 60 秒，超时后面板会提示，按钮会恢复可点。</p>
+    </header>
 
-      <section class="card">
-        <details class="teach-card" open>
-          <summary>🎓 为什么要多模型交叉验证？</summary>
-          <p>单一 AI 模型的输出无法自证真实性。不同模型在同一问题上给出矛盾答案时，说明该信息存疑，需人工核查。这是防范 <strong>AI 幻觉</strong> 的基础工作流：不同模型相互质疑，记者做最终裁决。</p>
-        </details>
-      </section>
-
-      <section class="card">
-        <label for="questionInput">问题（Ctrl+Enter 发送）</label>
-        <div class="preset-row">
-          <span>预设：</span>
-          <button type="button" class="preset-btn">幸存者偏差</button>
-          <button type="button" class="preset-btn">图片核实步骤</button>
-          <button type="button" class="preset-btn">信息茧房</button>
-          <button type="button" class="preset-btn">统计显著性</button>
-          <button type="button" class="preset-btn">Deepfake特征</button>
-        </div>
-        <textarea id="questionInput" rows="3" placeholder="输入问题，所有模型将并发响应…" aria-label="问题输入"></textarea>
-        <div class="btn-row">
-          <button id="runBtn" type="button">▶ 并发提问</button>
-          <button id="exportBtn" type="button" class="export-btn" disabled>导出对比报告</button>
-        </div>
-        <p id="status" role="status" aria-live="polite">状态: 填写模型配置后点击发送</p>
-      </section>
-
-      <div class="panels-grid">
-        <!-- Panel 1 -->
-        <article class="card panel">
-          <div class="panel-label">模型 A</div>
-          <label>API Endpoint</label>
-          <input type="url" class="endpoint" placeholder="https://api.openai.com" value="https://api.openai.com"/>
-          <label>Model</label>
-          <input type="text" class="model" placeholder="gpt-4o-mini" value="gpt-4o-mini"/>
-          <label>API Key</label>
-          <input type="password" class="apiKey" placeholder="sk-…"/>
-          <div class="response-time"></div>
-          <div class="out" aria-label="模型A响应"></div>
-        </article>
-        <!-- Panel 2 -->
-        <article class="card panel">
-          <div class="panel-label">模型 B</div>
-          <label>API Endpoint</label>
-          <input type="url" class="endpoint" placeholder="https://api.anthropic.com"/>
-          <label>Model</label>
-          <input type="text" class="model" placeholder="claude-3-5-haiku-20241022"/>
-          <label>API Key</label>
-          <input type="password" class="apiKey" placeholder="sk-ant-…"/>
-          <div class="response-time"></div>
-          <div class="out" aria-label="模型B响应"></div>
-        </article>
-        <!-- Panel 3 -->
-        <article class="card panel">
-          <div class="panel-label">模型 C</div>
-          <label>API Endpoint</label>
-          <input type="url" class="endpoint" placeholder="https://generativelanguage.googleapis.com/v1beta/openai"/>
-          <label>Model</label>
-          <input type="text" class="model" placeholder="gemini-2.0-flash"/>
-          <label>API Key</label>
-          <input type="password" class="apiKey" placeholder="AIza…"/>
-          <div class="response-time"></div>
-          <div class="out" aria-label="模型C响应"></div>
-        </article>
+    <section class="card">
+      <label for="questionInput">问题（Ctrl+Enter 发送）</label>
+      <div class="preset-row">
+        <span>预设：</span>
+        <button type="button" class="preset-btn btn-secondary">幸存者偏差</button>
+        <button type="button" class="preset-btn btn-secondary">图片核实步骤</button>
+        <button type="button" class="preset-btn btn-secondary">信息茧房</button>
+        <button type="button" class="preset-btn btn-secondary">统计显著性</button>
+        <button type="button" class="preset-btn btn-secondary">Deepfake特征</button>
       </div>
+      <textarea id="questionInput" rows="3" placeholder="输入问题，所有模型将并发响应…" aria-label="问题输入"></textarea>
+      <div class="btn-row">
+        <button id="runBtn" type="button">并发提问</button>
+        <button id="exportBtn" type="button" class="export-btn btn-secondary" disabled>导出对比报告</button>
+      </div>
+      <p id="status" role="status" aria-live="polite">状态: 填写模型配置后点击发送</p>
+    </section>
 
-      <section class="card">
-        <h2 style="margin:0 0 10px;font-size:1rem">历史对比记录</h2>
-        <ul id="historyList" class="history-list"></ul>
-      </section>
-    </main>
+    <div class="panels-grid">
+      <article class="card panel">
+        <div class="panel-label">模型 A</div>
+        <label>API Endpoint</label>
+        <input type="url" class="endpoint" placeholder="https://api.openai.com" value="https://api.openai.com"/>
+        <label>Model</label>
+        <input type="text" class="model" placeholder="gpt-4o-mini" value="gpt-4o-mini"/>
+        <label>API Key</label>
+        <input type="password" class="apiKey" placeholder="sk-…"/>
+        <div class="response-time"></div>
+        <div class="out" aria-label="模型A响应"></div>
+      </article>
+      <article class="card panel">
+        <div class="panel-label">模型 B</div>
+        <label>API Endpoint</label>
+        <input type="url" class="endpoint" placeholder="https://api.anthropic.com"/>
+        <label>Model</label>
+        <input type="text" class="model" placeholder="claude-3-5-haiku-20241022"/>
+        <label>API Key</label>
+        <input type="password" class="apiKey" placeholder="sk-ant-…"/>
+        <div class="response-time"></div>
+        <div class="out" aria-label="模型B响应"></div>
+      </article>
+      <article class="card panel">
+        <div class="panel-label">模型 C</div>
+        <label>API Endpoint</label>
+        <input type="url" class="endpoint" placeholder="https://generativelanguage.googleapis.com/v1beta/openai"/>
+        <label>Model</label>
+        <input type="text" class="model" placeholder="gemini-2.0-flash"/>
+        <label>API Key</label>
+        <input type="password" class="apiKey" placeholder="AIza…"/>
+        <div class="response-time"></div>
+        <div class="out" aria-label="模型C响应"></div>
+      </article>
+    </div>
 
-    <div style="text-align:center;padding:12px 16px;font-size:12px;color:#888;border-top:1px solid #eee;margin-top:24px;">🔒 API Key 仅在本地浏览器内使用，不经过任何中间服务器。</div>
-    <nav style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;font-size:13px;border-top:1px solid #e5e5e5;margin-top:16px;color:#666;">
-      <a href="https://yuuqq.github.io/journalism-toolbox/" style="text-decoration:none;">📋 工具箱导航</a>
-      <span style="opacity:.4">P01</span>
-    </nav>
-    <script src="./pm-metrics.js" defer></script>
-    <script src="./app.js" defer></script>
-    <script src="../shared/releases/v2.6/loader.js" data-modules="dark,cmd,toast,onboarding,pedagogy-p1,pedagogy-p2,nav,kbd"></script>
-    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
-  </body>
-  </html>
+    <section class="card">
+      <h2 class="history-heading">历史对比记录</h2>
+      <ul id="historyList" class="history-list"></ul>
+    </section>
+  </main>
+  <footer class="tool-footer">
+    数据边界以附录 A 为准：能在本机完成的计算不主动外发；示例数据仅供课堂；本工具输出不得单独当作结论。
+    <a href="../P00-dashboard/">返回工具箱</a>
+  </footer>
+  <script src="./pm-metrics.js" defer></script>
+  <script src="./app.js" defer></script>
+  <script src="../shared/releases/v2.6/loader.js" data-modules="dark,cmd,toast,onboarding,pedagogy-p1,pedagogy-p2,nav,kbd"></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{})}</script>
+</body>
+</html>

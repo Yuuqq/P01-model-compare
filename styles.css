@@ -1,219 +1,302 @@
-:root{--bg:#f2f8ff;--card:#fff;--line:#cfe0f1;--ink:#17304b;--accent:#7c3aed}
-  *{box-sizing:border-box}
-  body{margin:0;color:var(--ink);font-family:"Source Sans 3","Noto Sans SC",sans-serif;background:var(--bg)}
-  .app{max-width:1280px;margin:0 auto;padding:16px}
-  .hero,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
-  .hero h1{margin:0 0 6px}
-  label{display:block;font-weight:700;margin-bottom:4px;font-size:.85rem;color:#555}
-  input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;outline:none;background:#fff;transition:border-color .2s}
-  input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
-  .preset-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;font-size:13px;color:#888}
-  .preset-btn{border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;background:#f5f0ff;color:var(--accent);transition:all .15s}
-  .preset-btn:hover{background:#ede9fe;border-color:var(--accent)}
-  .btn-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-  button{border:0;border-radius:999px;padding:8px 16px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--accent),#5b21b6);font:inherit;font-size:.9rem;transition:all .2s}
-  button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,58,237,.3)}
-  button:disabled{opacity:.4;cursor:not-allowed}
-  button.export-btn{background:linear-gradient(135deg,#059669,#047857)}
-  .panels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
-  @media(max-width:900px){.panels-grid{grid-template-columns:1fr}}
-  .panel .panel-label{font-weight:800;font-size:1rem;margin-bottom:10px;color:var(--accent)}
-  .response-time{font-size:.75rem;color:#999;min-height:18px;margin-top:4px}
-  .out{min-height:80px;margin-top:8px;padding:10px;border-radius:10px;background:#f8f5ff;font-size:.9rem;line-height:1.6;word-break:break-word;border:1px solid #ede9fe}
-  .out.status-ok{background:#f0fdf4;border-color:#bbf7d0}
-  .out.status-error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
-  .out.status-loading{opacity:.6}
-  .history-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
-  .hist-item{display:flex;gap:8px;align-items:center;padding:8px 12px;border-radius:10px;border:1px solid var(--line);flex-wrap:wrap}
-  .hist-q{flex:1;font-size:.88rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hist-meta{font-size:.75rem;color:#999;white-space:nowrap}
-  .hist-load{border:1px solid var(--line);border-radius:8px;padding:3px 10px;font-size:.75rem;cursor:pointer;background:#f5f0ff;color:var(--accent)}
-  :root[data-theme="dark"]{--bg:#1a1a2e;--card:#242438;--line:#3a3a50;--ink:#e8e8f0}
-  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1a1a2e;--card:#242438;--line:#3a3a50;--ink:#e8e8f0}}
-  @keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-  .app{animation:fadeInUp .4s ease-out}
-  details.teach-card summary{cursor:pointer;font-weight:700}
-  details.teach-card p{margin:8px 0 0;font-size:.9rem;line-height:1.65;color:#555}
+/* P01 layout only. Colour, type, radius, and motion come from ../shared/. */
 
-/* ---- Print-friendly polish (v2.3 batch) ---- */
-@media print {
-  body { background: white !important; color: black !important; }
-  .global-nav, [data-nav], .skip-link, button:not(.print-keep), .btn:not(.print-keep) { display: none !important; }
-  a { color: inherit; text-decoration: underline; }
-  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.85em; word-break: break-all; }
-  .card, .panel, .hero { box-shadow: none !important; border: 1px solid #ccc !important; page-break-inside: avoid; }
-  h1, h2, h3 { page-break-after: avoid; break-after: avoid; }
+.app,
+.tool-chrome,
+.tool-teach,
+.tool-footer {
+  max-width: 1280px;
+  margin-inline: auto;
 }
 
-/* ---- Reduced motion guard (v2.3 batch) — caps custom animations ---- */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+.app {
+  padding: 0 var(--space-md) var(--space-lg);
 }
 
-/* =====================================================================
- * v2.4.1 deep polish (Tier-2 batch) — ui-ux-pro-max + frontend-design
- * Uses each tool's existing --accent / --line / --card / --ink tokens.
- * Architect-approved on Tier-1 (v2.4.1 / 2026-05). All :where / class
- * scoped — won't affect tools that don't use these classes.
- * ===================================================================== */
+.hero,
+.card {
+  background: var(--card);
+  border: var(--rule-hair, 1px) solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
 
-/* P3 Hierarchy — Hero h1 brand gradient with 3-tier fallback chain */
 .hero h1 {
-  color: var(--accent, var(--focus, #2563eb));
-  background: linear-gradient(135deg,
-    var(--accent, var(--focus, #2563eb)) 0%,
-    #1e3a8a 100%);
-  background: linear-gradient(135deg,
-    var(--accent, var(--focus, #2563eb)) 0%,
-    color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 65%, var(--ink, #0f172a)) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-serif);
+  font-weight: 700;
 }
-@supports not (background-clip: text) {
-  .hero h1 {
-    color: var(--accent, var(--focus, #2563eb));
-    -webkit-text-fill-color: currentColor;
-    background: none;
+
+.hero p {
+  margin: 0 0 var(--space-xs);
+}
+
+.hero .note,
+.tool-teach p {
+  color: var(--ink-secondary);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.tool-teach p {
+  margin: var(--space-sm) 0 0;
+  color: var(--ink);
+}
+
+.history-heading {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+label {
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  margin-bottom: var(--space-xs);
+  font-size: 0.85rem;
+  color: var(--ink);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border: var(--rule-hair, 1px) solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--card);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid var(--focus, var(--accent));
+  outline-offset: 2px;
+  transition: none;
+}
+
+.preset-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
+  letter-spacing: 0;
+}
+
+.btn-row {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+#runBtn {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  padding: 8px 16px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.preset-btn,
+.export-btn,
+.hist-load {
+  background: transparent;
+  color: var(--ink);
+  border: var(--rule-hair, 1px) solid var(--line);
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  padding: 8px 12px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.panels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .panels-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* P5 Layout — hero subtitle improved rhythm */
-.hero .lead { max-width: 64ch; }
-.hero .subtle { max-width: 72ch; opacity: 0.85; }
-
-/* P8 Buttons — primary via explicit hooks (no :first-of-type guesswork) */
-.btn-primary, [data-primary],
-button#scanBtn, button#submitBtn, button#generateBtn, button#checkBtn,
-button#extractBtn, button#startBtn, button#runBtn, button#analyzeBtn,
-button[type="submit"]:not(.ghost):not(.btn-secondary) {
-  background: linear-gradient(180deg,
-    var(--accent, var(--focus, #2563eb)),
-    #1e40af);
-  background: linear-gradient(180deg,
-    var(--accent, var(--focus, #2563eb)),
-    color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 78%, #000));
-  color: #fff;
-  border: 1px solid #1e40af;
-  border: 1px solid color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 70%, #000);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 14px -6px rgba(37,99,235,0.5);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.18) inset, 0 6px 14px -6px color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 50%, transparent);
+.panel .panel-label {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: var(--accent);
+  letter-spacing: 0;
 }
 
-/* P7 Micro — card hover lift; guarded by hover capability + reduced-motion */
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .card:not(.hero):not(:has(textarea)):not(:has(form)) {
-    transition: transform 0.18s ease, box-shadow 0.22s ease;
-  }
-  .card:not(.hero):not(:has(textarea)):not(:has(form)):hover {
-    transform: translateY(-1px);
-  }
-}
-
-/* P8 Forms — textarea focus halo */
-textarea {
-  border-radius: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.18s ease;
-}
-textarea:focus, textarea:focus-visible {
-  border-color: var(--accent, var(--focus, #2563eb));
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 18%, transparent);
-}
-
-/* P5 Status — aria-live regions render as accent-tinted pill */
-[aria-live="polite"], [aria-live="assertive"], #status {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.85em;
-  background: rgba(37,99,235,0.08);
-  background: color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 8%, transparent);
-  border: 1px solid rgba(37,99,235,0.18);
-  border: 1px solid color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 18%, transparent);
+.response-time {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  min-height: 18px;
+  margin-top: var(--space-xs);
   font-variant-numeric: tabular-nums;
 }
 
-/* P6 Details/teach-card — hover affordance */
-details.teach-card summary {
-  cursor: pointer;
-  border-radius: 8px;
-  padding: 4px 6px;
-  margin: -4px -6px;
-  transition: background 0.15s ease;
-}
-details.teach-card summary:hover {
-  background: rgba(37,99,235,0.08);
-  background: color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 8%, transparent);
-}
-details.teach-card[open] summary {
-  margin-bottom: 4px;
+.out {
+  min-height: 80px;
+  margin-top: var(--space-sm);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  word-break: break-word;
+  border: var(--rule-hair, 1px) solid var(--line);
 }
 
-/* P5 Mobile — sticky hero on small screens (with solid bg fallback) */
-@media (max-width: 640px) {
+.out.status-ok {
+  background: color-mix(in srgb, var(--ok) 12%, var(--card));
+  border-color: color-mix(in srgb, var(--ok) 35%, var(--line));
+}
+
+.out.status-error {
+  background: var(--accent-light);
+  border-color: color-mix(in srgb, var(--bad) 35%, var(--line));
+  color: var(--bad);
+}
+
+.out.status-loading {
+  opacity: 0.72;
+}
+
+#status {
+  margin: var(--space-sm) 0 0;
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  letter-spacing: 0;
+}
+
+.history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hist-item {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: var(--rule-hair, 1px) solid var(--line);
+  flex-wrap: wrap;
+}
+
+.hist-q {
+  flex: 1;
+  font-size: 0.88rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hist-meta {
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+a.tool-chrome__mark {
+  color: var(--ink) !important;
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+  text-decoration: none !important;
+}
+
+a.tool-chrome__mark:hover {
+  color: var(--accent-hover) !important;
+}
+
+.tool-chrome__id {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app,
+  .hero,
+  .card {
+    animation: none;
+  }
+}
+
+@media print {
+  :root {
+    --print-paper: #f7f3e8;
+    --print-ink: #1a140e;
+  }
+
+  body {
+    background: var(--print-paper) !important;
+    color: var(--print-ink) !important;
+  }
+
+  .skip-link,
+  button:not(.print-keep) {
+    display: none !important;
+  }
+
+  a {
+    color: var(--print-ink);
+    text-decoration: underline;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+
+  .card,
+  .panel,
   .hero {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    background: var(--card, #fff);
-    background: color-mix(in srgb, var(--card, #fff) 88%, transparent);
+    box-shadow: none !important;
+    background: var(--print-paper) !important;
+    border: 1px solid color-mix(in srgb, var(--print-ink) 22%, var(--print-paper)) !important;
+    break-inside: avoid;
   }
-  @supports not (backdrop-filter: blur(8px)) {
-    .hero { background: var(--card, #fff); }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
   }
-}
-
-/* =====================================================================
- * v2.5 tool-specific — per-tool unique enhancements
- * Archetypes: chart_svg, json_textarea, link_list
- * ===================================================================== */
-
-/* Chart/SVG visualization emphasis */
-svg { display: block; max-width: 100%; }
-svg text { font-family: ui-sans-serif, system-ui, "Noto Sans SC", sans-serif; }
-.chart, .chart-card, .chartWrap, [id="chart"], [id="scatterPlot"], [id="chartContainer"] {
-  border-radius: 12px;
-  background: var(--card, #fff);
-  position: relative;
-}
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  svg [data-bar], svg .bar, svg path[data-segment], svg rect[data-bar] {
-    transition: opacity 0.15s ease;
-  }
-  svg [data-bar]:hover, svg .bar:hover { opacity: 0.85; }
-}
-
-/* JSON / code textarea */
-textarea[id*="json"i], textarea[id*="config"i], textarea[id="input"], textarea#configArea, textarea#configInput {
-  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Cascadia Code", "Source Code Pro", monospace;
-  font-size: 0.88em;
-  line-height: 1.55;
-  tab-size: 2;
-  -moz-tab-size: 2;
-}
-
-/* Link / source / feed list rows */
-.links li, .feed-list li, .sources li, .episode-list li, .history-list li, .chapters-list li {
-  border-radius: 8px;
-  transition: background 0.12s ease, transform 0.12s ease;
-  padding: 6px 8px;
-}
-@media (hover: hover) {
-  .links li:hover, .feed-list li:hover, .sources li:hover, .episode-list li:hover, .history-list li:hover {
-    background: rgba(37,99,235,0.06);
-    background: color-mix(in srgb, var(--accent, var(--focus, #2563eb)) 6%, transparent);
-  }
-}
-.links a, .feed-list a, .sources a, .episode-list a {
-  text-underline-offset: 2px;
-  transition: color 0.12s ease;
 }

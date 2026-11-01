@@ -137,7 +137,7 @@
 
       activePanels.forEach(p => {
         const pv = panelValues(p);
-        setOutput(pv.out, "⏳ 请求中…", "loading");
+        setOutput(pv.out, "请求中…", "loading");
         if (pv.timeEl) pv.timeEl.textContent = "";
       });
 
@@ -148,12 +148,12 @@
           const ans = await askModel(pv.endpoint, pv.model, pv.apiKey, question);
           const ms = Date.now() - t0;
           setOutput(pv.out, ans, "ok");
-          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
+          if (pv.timeEl) pv.timeEl.textContent = (ms / 1000).toFixed(1) + "s";
           return { model: pv.model || pv.endpoint, answer: ans, time: ms };
         } catch (e) {
           const ms = Date.now() - t0;
           setOutput(pv.out, "错误: " + e.message, "error");
-          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + (ms / 1000).toFixed(1) + "s";
+          if (pv.timeEl) pv.timeEl.textContent = (ms / 1000).toFixed(1) + "s";
           return { model: pv.model || pv.endpoint, answer: "[错误] " + e.message, time: ms };
         }
       }));
@@ -196,6 +196,7 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "hist-load";
+      btn.classList.add("btn-secondary");
       btn.dataset.idx = String(i);
       btn.textContent = "重载";
       btn.addEventListener("click", function() {
@@ -207,7 +208,7 @@
           const pv = panelValues(panels[idx]);
           const answer = String(r.answer || "");
           setOutput(pv.out, answer, answer.startsWith("[错误]") ? "error" : "ok");
-          if (pv.timeEl) pv.timeEl.textContent = "⏱ " + ((r.time || 0) / 1000).toFixed(1) + "s";
+          if (pv.timeEl) pv.timeEl.textContent = ((r.time || 0) / 1000).toFixed(1) + "s";
         });
         setStatus("已载入历史对比");
       });
@@ -237,7 +238,7 @@
         const body = escapeHTML(p.content).replace(/\n/g, "<br>");
         return '<div class="panel-card"><div class="panel-label">' + escapeHTML(p.label) + '</div><div>' + body + '</div></div>';
       }).join("");
-      const html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><title>AI模型对比</title><style>body{font-family:system-ui;max-width:1200px;margin:0 auto;padding:20px;background:#f5f7fa}.grid{display:grid;grid-template-columns:repeat(' + panelData.length + ',1fr);gap:16px}.panel-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #ddd}.panel-label{font-weight:700;margin-bottom:8px;font-size:.9rem;color:#555}</style></head><body><h1>问题: ' + escapeHTML(question) + '</h1><div class="grid">' + cols + '</div><p style="margin-top:20px;font-size:11px;color:#aaa">由 P01 AI模型对比工作台生成 · ' + new Date().toLocaleString("zh-CN") + '</p></body></html>';
+      const html = '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><title>AI模型对比</title><style>body{font-family:"Noto Sans SC",sans-serif;max-width:1200px;margin:0 auto;padding:20px;background:#F0E6CF;color:#3A2E20}.grid{display:grid;grid-template-columns:repeat(' + panelData.length + ',1fr);gap:16px}.panel-card{background:#F7EFDA;border-radius:6px;padding:16px;border:1px solid #D3C4A0}.panel-label{font-weight:700;margin-bottom:8px;font-size:.9rem;color:#6E5B41}</style></head><body><h1>问题: ' + escapeHTML(question) + '</h1><div class="grid">' + cols + '</div><p style="margin-top:20px;font-size:.85rem;color:#6E5B41">由 P01 AI模型对比工作台生成 · ' + new Date().toLocaleString("zh-CN") + '</p></body></html>';
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
