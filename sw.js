@@ -1,6 +1,5 @@
 /**
- * 🔌 通用 Service Worker — 缓存优先策略
- * 适用于全部 50 个新闻工具项目。
+ * P01 Service Worker — 缓存优先策略。
  *
  * 策略：
  * 1. 安装时预缓存当前项目的核心文件
@@ -8,15 +7,17 @@
  * 3. 网络优先 (Network-First) 获取 API 请求
  * 4. 离线回退页面
  */
-const CACHE_NAME = "journalism-tool-P01-v1-r20261016";
+const CACHE_NAME = "p01-model-compare-v1";
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./pm-metrics.js",
+  "./favicon.svg",
   "../shared/design-tokens.css",
-  "../shared/dark-toggle.js"
+  "../shared/modern-styles.css",
+  "../shared/tool-chrome.css"
 ];
 
 // Install: Pre-cache core assets
